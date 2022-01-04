@@ -89,11 +89,11 @@ class IframeView {
 		// Back up if seamless isn't supported
 		this.iframe.style.border = "none";
 
-		// sandbox
-		this.iframe.sandbox = "allow-same-origin";
-		if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
-			this.iframe.sandbox += " allow-scripts"
-		}
+        // sandbox
+        this.iframe.sandbox = "allow-same-origin";
+        if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
+            this.iframe.sandbox += " allow-scripts";
+        }
 
 		this.iframe.setAttribute("enable-annotation", "true");
 
@@ -122,12 +122,11 @@ class IframeView {
 		//   this.iframeBounds = bounds(this.iframe);
 		// }
 
-
-		if(("srcdoc" in this.iframe)) {
-			this.supportsSrcdoc = true;
-		} else {
-			this.supportsSrcdoc = false;
-		}
+        if ("srcdoc" in this.iframe) {
+            this.supportsSrcdoc = true;
+        } else {
+            this.supportsSrcdoc = false;
+        }
 
 		if (!this.settings.method) {
 			this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
@@ -148,23 +147,26 @@ class IframeView {
 			this.sectionRender = this.section.render(request);
 		}
 
-		// Render Chain
-		return this.sectionRender
-			.then(function(contents){
-				return this.load(contents);
-			}.bind(this))
-			.then(function(){
+        // Render Chain
+        return this.sectionRender
+            .then(
+                function (contents) {
+                    let newContents = contents.replaceAll("./blob:http", "blob:http");
+                    return this.load(newContents);
+                }.bind(this)
+            )
+            .then(
+                function () {
+                    // find and report the writingMode axis
+                    let writingMode = this.contents.writingMode();
 
-				// find and report the writingMode axis
-				let writingMode = this.contents.writingMode();
-
-				// Set the axis based on the flow and writing mode
-				let axis;
-				if (this.settings.flow === "scrolled") {
-					axis = (writingMode.indexOf("vertical") === 0) ? "horizontal" : "vertical";
-				} else {
-					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
-				}
+                    // Set the axis based on the flow and writing mode
+                    let axis;
+                    if (this.settings.flow === "scrolled") {
+                        axis = writingMode.indexOf("vertical") === 0 ? "horizontal" : "vertical";
+                    } else {
+                        axis = writingMode.indexOf("vertical") === 0 ? "vertical" : "horizontal";
+                    }
 
 				if (writingMode.indexOf("vertical") === 0 && this.settings.flow === "paginated") {
 					this.layout.delta = this.layout.height;
