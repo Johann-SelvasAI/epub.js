@@ -625,11 +625,11 @@ class IframeView {
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		// h.element.addEventListener("touchstart", emitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
+			// h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
@@ -657,11 +657,11 @@ class IframeView {
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		// h.element.addEventListener("touchstart", emitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
+			// h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
@@ -709,11 +709,11 @@ class IframeView {
 
 		if (cb) {
 			mark.addEventListener("click", cb);
-			mark.addEventListener("touchstart", cb);
+			// mark.addEventListener("touchstart", cb);
 		}
 
 		mark.addEventListener("click", emitter);
-		mark.addEventListener("touchstart", emitter);
+		// mark.addEventListener("touchstart", emitter);
 
 		this.placeMark(mark, range);
 
@@ -761,7 +761,7 @@ class IframeView {
 			item.listeners.forEach((l) => {
 				if (l) {
 					item.element.removeEventListener("click", l);
-					item.element.removeEventListener("touchstart", l);
+					// item.element.removeEventListener("touchstart", l);
 				};
 			});
 			delete this.highlights[cfiRange];
@@ -776,7 +776,7 @@ class IframeView {
 			item.listeners.forEach((l) => {
 				if (l) {
 					item.element.removeEventListener("click", l);
-					item.element.removeEventListener("touchstart", l);
+					// item.element.removeEventListener("touchstart", l);
 				};
 			});
 			delete this.underlines[cfiRange];
@@ -791,7 +791,7 @@ class IframeView {
 			item.listeners.forEach((l) => {
 				if (l) {
 					item.element.removeEventListener("click", l);
-					item.element.removeEventListener("touchstart", l);
+					// item.element.removeEventListener("touchstart", l);
 				};
 			});
 			delete this.marks[cfiRange];
