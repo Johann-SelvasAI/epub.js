@@ -230,7 +230,7 @@ class IframeView {
 			this.lock("both", width, height);
 		} else if(this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {			
+		} else {
 			this.lock("width", width, height);
 		}
 

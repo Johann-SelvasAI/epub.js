@@ -8,6 +8,10 @@ export default class Annotations {
 
   remove(cfiRange: string, type: string): void;
 
+  removeByID(id: int, type: string): void;
+
+  removeByTime(time: int, type: string): void;
+
   highlight(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
 
 	underline(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;

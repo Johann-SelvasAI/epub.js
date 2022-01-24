@@ -92,6 +92,54 @@ class Annotations {
 	}
 
 	/**
+	 * Remove an annotation from store
+	 * @param {int}  id range the annotation is attached to
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 */
+	removeByID (id, type) {
+		for (const [hash, annotation] of Object.entries(this._annotations)) {
+			if (type && annotation.type !== type || annotation.data["id"] !== id) {
+				continue;
+			}
+
+			let views = this.rendition.views();
+			views.forEach( (view) => {
+				this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
+
+				if (annotation.sectionIndex === view.index) {
+					annotation.detach(view);
+				}
+			});
+
+			delete this._annotations[hash];
+		}
+	}
+
+	/**
+	 * Remove an annotation from store
+	 * @param {long}  time range the annotation is attached to
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 */
+	removeByTime (time, type) {
+		for (const [hash, annotation] of Object.entries(this._annotations)) {
+			if (type && annotation.type !== type || annotation.data["time"] !== time) {
+				continue;
+			}
+
+			let views = this.rendition.views();
+			views.forEach( (view) => {
+				this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
+
+				if (annotation.sectionIndex === view.index) {
+					annotation.detach(view);
+				}
+			});
+
+			delete this._annotations[hash];
+		}
+	}
+
+	/**
 	 * Remove an annotations by Section Index
 	 * @private
 	 */
