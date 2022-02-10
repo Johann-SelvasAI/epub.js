@@ -291,8 +291,24 @@ class IframeView {
 		this._expanding = true;
 
 		if(this.layout.name === "pre-paginated") {
-			width = this.layout.columnWidth;
-			height = this.layout.height;
+			// non-reflowable 가운데 정렬을 위한 classs "epub-view" 사이즈 조정. container.style.justifyContent = "center"; 가 전제 되어야 함.
+			if (this.settings.axis === "horizontal") {
+				let container = parent.document.getElementsByClassName("epub-container");
+
+				if (container) {
+					container[0].style.justifyContent = "center";
+				}
+			}
+
+			var viewport = this.contents.viewport();
+			var viewportWidth = parseInt(viewport.width);
+			var viewportHeight = parseInt(viewport.height);
+			var widthScale = this.layout.columnWidth / viewportWidth;
+			var heightScale = this.layout.height / viewportHeight;
+			var scale = widthScale < heightScale ? widthScale : heightScale;
+
+			width = viewportWidth * scale;
+			height = viewportHeight * scale;
 		}
 		// Expand Horizontally
 		else if(this.settings.axis === "horizontal") {
