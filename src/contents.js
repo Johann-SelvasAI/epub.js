@@ -559,6 +559,7 @@ class Contents {
 		var img;
 		for (var i = 0; i < images.length; i++) {
 			img = images[i];
+			img.src = decodeURI(img.src).normalize('NFC');
 
 			if (typeof img.naturalWidth !== "undefined" &&
 					img.naturalWidth === 0) {

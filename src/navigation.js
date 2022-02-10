@@ -148,8 +148,8 @@ class Navigation {
 	 * @return {array} navigation list
 	 */
 	parseNav(navHtml){
-		var navElement = querySelectorByType(navHtml, "nav", "toc");
 		var list = [];
+		var navElement = querySelectorByType(navHtml, "nav", "toc");
 
 		if (!navElement) return list;
 
@@ -171,7 +171,7 @@ class Navigation {
 
 		if (!navListHtml) return result;
 		if (!navListHtml.children) return result;
-		
+
 		for (let i = 0; i < navListHtml.children.length; i++) {
 			const item = this.navItem(navListHtml.children[i], parent);
 
@@ -198,7 +198,7 @@ class Navigation {
 		}
 
 		let src = content.getAttribute("href") || "";
-		
+
 		if (!id) {
 			id = src;
 		}

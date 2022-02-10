@@ -2,17 +2,14 @@ import {defer, isXml, parse} from "./core";
 import Path from "./path";
 
 function request(url, type, withCredentials, headers) {
+	var normalizeUrl = decodeURI(url).normalize("NFC");
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-
 	var deferred = new defer();
-
 	var xhr = new XMLHttpRequest();
-
 	//-- Check from PDF.js:
 	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
 	var xhrPrototype = XMLHttpRequest.prototype;
-
 	var header;
 
 	if (!("overrideMimeType" in xhrPrototype)) {
@@ -28,8 +25,7 @@ function request(url, type, withCredentials, headers) {
 
 	xhr.onreadystatechange = handler;
 	xhr.onerror = err;
-
-	xhr.open("GET", url, true);
+	xhr.open("GET", normalizeUrl, true);
 
 	for(header in headers) {
 		xhr.setRequestHeader(header, headers[header]);
@@ -41,7 +37,7 @@ function request(url, type, withCredentials, headers) {
 
 	// If type isn"t set, determine it from the file extension
 	if(!type) {
-		type = new Path(url).extension;
+		type = new Path(normalizeUrl).extension;
 	}
 
 	if(type == "blob"){
@@ -133,13 +129,11 @@ function request(url, type, withCredentials, headers) {
 
 				deferred.resolve(r);
 			} else {
-
 				deferred.reject({
 					status: this.status,
 					message : this.response,
 					stack : new Error().stack
 				});
-
 			}
 		}
 	}
