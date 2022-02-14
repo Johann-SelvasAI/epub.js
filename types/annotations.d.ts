@@ -12,6 +12,10 @@ export default class Annotations {
 
   removeByTime(time: int, type: string): void;
 
+  exist(cfiRange: string, type: string): void;
+
+  replace(cfiRange: string, type: string, styles: object): Annotation;
+
   highlight(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
 
 	underline(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;

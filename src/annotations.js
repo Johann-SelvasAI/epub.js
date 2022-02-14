@@ -140,6 +140,62 @@ class Annotations {
 	}
 
 	/**
+	 * check exist an annotation
+	 * @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 */
+	exist(cfiRange, type) {
+		let hash = encodeURI(cfiRange + type);
+		return (hash in this._annotations && this._annotations[hash].type === type);
+	}
+
+	/**
+	 * replace an annotation from store
+	 * @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 */
+	replace(cfiRange, type, styles) {
+		let hash = encodeURI(cfiRange + type);
+
+		if (!(hash in this._annotations)) {
+			return null;
+		}
+
+		let cfi = new src_epubcfi["a" /* default */](cfiRange);
+		let sectionIndex = cfi.spinePos;
+		let annotation = this._annotations[hash];
+
+		if (type && annotation.type !== type) {
+			return null;
+		}
+
+		let views = this.rendition.views();
+		views.forEach(view => {
+			this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
+
+			if (annotation.sectionIndex === view.index) {
+				annotation.detach(view);
+			}
+		});
+
+		annotation["styles"] = styles;
+
+		if (sectionIndex in this._annotationsBySectionIndex) {
+			this._annotationsBySectionIndex[sectionIndex].push(hash);
+		} else {
+			this._annotationsBySectionIndex[sectionIndex] = [hash];
+		}
+
+		views.forEach(view => {
+			if (annotation.sectionIndex === view.index) {
+				annotation.attach(view);
+			}
+		});
+
+		return annotation;
+	}
+
+	/**
 	 * Remove an annotations by Section Index
 	 * @private
 	 */
