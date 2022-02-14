@@ -80,7 +80,8 @@ class Locations {
 		return section.load(this.request)
 			.then(function(contents) {
 				var completed = new defer();
-				var locations = this.parse(contents, section.cfiBase);
+				var isCover = (section.index === 0 && section.cfiBase.endsWith("/2"));
+				var locations = this.parse(contents, section.cfiBase, undefined, isCover);
 				this._locations = this._locations.concat(locations);
 
 				section.unload();
@@ -91,7 +92,7 @@ class Locations {
 
 	}
 
-	parse(contents, cfiBase, chars) {
+	parse(contents, cfiBase, chars, isCover) {
 		var locations = [];
 		var range;
 		var doc = contents.ownerDocument;
@@ -104,7 +105,7 @@ class Locations {
 			var dist;
 			var pos = 0;
 
-			if (node.textContent.trim().length === 0) {
+			if (node.textContent.trim().length === 0 && !isCover) {
 				return false; // continue
 			}
 
