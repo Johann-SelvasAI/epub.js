@@ -10,6 +10,7 @@ export const EVENTS = {
   CONTENTS : {
     EXPAND : "expand",
     RESIZE : "resize",
+    SELECT_START : "selectStart",
     SELECTED : "selected",
     SELECTED_RANGE : "selectedRange",
     LINK_CLICKED : "linkClicked"
@@ -35,7 +36,8 @@ export const EVENTS = {
     DISPLAYED : "displayed",
     SHOWN : "shown",
     HIDDEN : "hidden",
-    MARK_CLICKED : "markClicked"
+    MARK_CLICKED : "markClicked",
+    MEMO_CLICKED : "memoClicked"
   },
   RENDITION : {
     STARTED : "started",
@@ -49,6 +51,7 @@ export const EVENTS = {
     LOCATION_CHANGED : "locationChanged",
     RELOCATED : "relocated",
     MARK_CLICKED : "markClicked",
+    MEMO_CLICKED : "memoClicked",
     SELECTED : "selected",
     LAYOUT: "layout"
   },

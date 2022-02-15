@@ -47,6 +47,7 @@ class IframeView {
 		this.highlights = {};
 		this.underlines = {};
 		this.marks = {};
+		this.memos = {};
 
 	}
 
@@ -88,11 +89,12 @@ class IframeView {
 		this.iframe.seamless = "seamless";
 		// Back up if seamless isn't supported
 		this.iframe.style.border = "none";
-
+		this.iframe.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
         // sandbox
         this.iframe.sandbox = "allow-same-origin";
+
         if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
-            this.iframe.sandbox += " allow-scripts";
+			this.iframe.sandbox += " allow-same-origin allow-scripts allow-popups allow-forms";
         }
 
 		this.iframe.setAttribute("enable-annotation", "true");
@@ -621,9 +623,9 @@ class IframeView {
 		if (!this.contents) {
 			return;
 		}
+
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		let range = this.contents.range(cfiRange);
-
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
@@ -636,17 +638,16 @@ class IframeView {
 
 		let m = new Highlight(range, className, data, attributes);
 		let h = this.pane.addMark(m);
-
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
-
 		h.element.setAttribute("ref", className);
-		h.element.addEventListener("click", emitter);
-		// h.element.addEventListener("touchstart", emitter);
+		h.element.addEventListener("mousedown", emitter);
+		h.element.addEventListener("touchstart", emitter);
 
 		if (cb) {
-			h.element.addEventListener("click", cb);
-			// h.element.addEventListener("touchstart", cb);
+			h.element.addEventListener("mousedown", cb);
+			h.element.addEventListener("touchstart", cb);
 		}
+
 		return h;
 	}
 
@@ -768,6 +769,88 @@ class IframeView {
 		element.style.left = `${right}px`;
 	}
 
+	memo(cfiRange, data={}, cb) {
+		if (!this.contents) {
+			return;
+		}
+
+		if (cfiRange in this.memos) {
+			let item = this.memos[cfiRange];
+			return item;
+		}
+
+		let range = this.contents.range(cfiRange);
+
+		if (!range) {
+			return;
+		}
+
+		let container = range.commonAncestorContainer;
+		let parent = (container.nodeType === 1) ? container : container.parentNode;
+		let emitter = (e) => {
+			this.emit(EVENTS.VIEWS.MEMO_CLICKED, cfiRange, data);
+		};
+
+		if (range.collapsed && container.nodeType === 1) {
+			range = new Range();
+			range.selectNodeContents(container);
+		} else if (range.collapsed) { // Webkit doesn't like collapsed ranges
+			range = new Range();
+			range.selectNodeContents(parent);
+		}
+
+		let memo = this.document.createElement("a");
+		memo.setAttribute("ref", "epubjs-mk");
+		memo.style.position = "absolute";
+		memo.dataset["epubcfi"] = cfiRange;
+        memo.classList.add("memo");
+
+		if (data) {
+			Object.keys(data).forEach((key) => {
+				memo.dataset[key] = data[key];
+			});
+		}
+
+		if (cb) {
+			memo.addEventListener("click", cb);
+			memo.addEventListener("touchstart", cb);
+		}
+
+		memo.addEventListener("click", emitter);
+		memo.addEventListener("touchstart", emitter);
+		this.placeMemo(memo, range);
+		this.element.appendChild(memo);
+		this.memos[cfiRange] = { "element": memo, "range": range, "listeners": [emitter, cb] };
+
+		return parent;
+	}
+
+	placeMemo(element, range) {
+		let top, right, left;
+
+		if(this.layout.name === "pre-paginated" ||
+			this.settings.axis !== "horizontal") {
+			let pos = range.getBoundingClientRect();
+			top = pos.top;
+			right = pos.right;
+		} else {
+			let rects = range.getClientRects();
+			let rect;
+
+			for (var i = 0; i != rects.length; i++) {
+                rect = rects[i];
+
+                if (!left || rect.left < left) {
+                    left = rect.right;
+                    top = rect.top;
+                }
+			}
+		}
+
+		element.style.top = `${top}px`;
+		element.style.left = `${left}px`;
+	}
+
 	unhighlight(cfiRange) {
 		let item;
 		if (cfiRange in this.highlights) {
@@ -792,7 +875,7 @@ class IframeView {
 			item.listeners.forEach((l) => {
 				if (l) {
 					item.element.removeEventListener("click", l);
-					// item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchstart", l);
 				};
 			});
 			delete this.underlines[cfiRange];
@@ -807,10 +890,25 @@ class IframeView {
 			item.listeners.forEach((l) => {
 				if (l) {
 					item.element.removeEventListener("click", l);
-					// item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchstart", l);
 				};
 			});
 			delete this.marks[cfiRange];
+		}
+	}
+
+	unmemo(cfiRange) {
+		let item;
+		if (cfiRange in this.memos) {
+			item = this.memos[cfiRange];
+			this.element.removeChild(item.element);
+			item.listeners.forEach((l) => {
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+				};
+			});
+			delete this.memos[cfiRange];
 		}
 	}
 
@@ -826,6 +924,10 @@ class IframeView {
 
 		for (let cfiRange in this.marks) {
 			this.unmark(cfiRange);
+		}
+
+		for (let cfiRange in this.memos) {
+			this.unmemo(cfiRange);
 		}
 
 		if (this.blobUrl) {

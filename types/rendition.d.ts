@@ -139,6 +139,8 @@ export default class Rendition {
 
     private triggerMarkEvent(cfiRange: string, data: object, contents: Contents): void;
 
+    private triggerMemoEvent(cfiRange: string, data: object, contents: Contents): void;
+
     private triggerSelectedEvent(cfirange: string, contents: Contents): void;
 
     private triggerViewEvent(e: Event, contents: Contents): void;

@@ -416,6 +416,7 @@ class Rendition {
 	afterDisplayed(view){
 
 		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
+		view.on(EVENTS.VIEWS.MEMO_CLICKED, (cfiRange, data) => this.triggerMemoEvent(cfiRange, data, view.contents));
 
 		this.hooks.render.trigger(view, this)
 			.then(() => {
@@ -919,6 +920,23 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
+	}
+
+	/**
+	 * Emit a memoClicked event with the cfiRange and data from a memo
+	 * @private
+	 * @param  {EpubCFI} cfirange
+	 */
+	triggerMemoEvent(cfiRange, data, contents){
+		/**
+		 * Emit that a memo was clicked
+		 * @event memoClicked
+		 * @param {EpubCFI} cfirange
+		 * @param {object} data
+		 * @param {Contents} contents
+		 * @memberof Rendition
+		 */
+		this.emit(EVENTS.RENDITION.MEMO_CLICKED, cfiRange, data, contents);
 	}
 
 	/**

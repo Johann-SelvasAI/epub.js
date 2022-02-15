@@ -14,6 +14,7 @@ class Annotations {
 		this.highlights = [];
 		this.underlines = [];
 		this.marks = [];
+		this.memos = [];
 		this._annotations = {};
 		this._annotationsBySectionIndex = {};
 
@@ -359,6 +360,8 @@ class Annotation {
 			result = view.underline(cfiRange, data, cb, className, styles);
 		} else if (type === "mark") {
 			result = view.mark(cfiRange, data, cb);
+		} else if (type === "memo") {
+			result = view.memo(cfiRange, data, cb);
 		}
 
 		this.mark = result;
@@ -381,6 +384,8 @@ class Annotation {
 				result = view.ununderline(cfiRange);
 			} else if (type === "mark") {
 				result = view.unmark(cfiRange);
+			} else if (type === "memo") {
+				result = view.unmemo(cfiRange);
 			}
 		}
 
