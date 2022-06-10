@@ -143,6 +143,8 @@ export default class Rendition {
 
     private triggerSelectedEvent(cfirange: string, contents: Contents): void;
 
+    private triggerSelectStartEvent(): void;
+
     private triggerViewEvent(e: Event, contents: Contents): void;
 
     private onResized(size: { width: number, height: number }): void;

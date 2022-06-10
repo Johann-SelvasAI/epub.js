@@ -878,6 +878,7 @@ class Rendition {
 		});
 
 		contents.on(EVENTS.CONTENTS.SELECTED, (e) => this.triggerSelectedEvent(e, contents));
+		contents.on(EVENTS.CONTENTS.SELECT_START, (e) => this.triggerSelectStartEvent(e));
 	}
 
 	/**
@@ -903,6 +904,20 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.SELECTED, cfirange, contents);
+	}
+
+	/**
+	 * Emit a select start event's CFI Range passed from a a view
+	 * @private
+	 * @param  {string} cfirange
+	 */
+	triggerSelectStartEvent(e){
+		/**
+		 * Emit that a text select start has occured
+		 * @event select start
+		 * @memberof Rendition
+		 */
+		this.emit(EVENTS.RENDITION.SELECT_START, e);
 	}
 
 	/**

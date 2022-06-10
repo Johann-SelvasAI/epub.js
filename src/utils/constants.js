@@ -53,6 +53,7 @@ export const EVENTS = {
     MARK_CLICKED : "markClicked",
     MEMO_CLICKED : "memoClicked",
     SELECTED : "selected",
+    SELECT_START : "selectStart",
     LAYOUT: "layout"
   },
   LAYOUT : {

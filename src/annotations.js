@@ -162,7 +162,7 @@ class Annotations {
 			return null;
 		}
 
-		let cfi = new src_epubcfi["a" /* default */](cfiRange);
+		let cfi = new EpubCFI(cfiRange);
 		let sectionIndex = cfi.spinePos;
 		let annotation = this._annotations[hash];
 

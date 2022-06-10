@@ -101,6 +101,8 @@ export default class Contents {
 
     private addSelectionListeners(): void;
 
+    private addSelectStartListeners(): void;
+
     private epubReadingSystem(name: string, version: string): object;
 
     private expand(): void;
@@ -119,11 +121,15 @@ export default class Contents {
 
     private onSelectionChange(e: Event): void;
 
+    private onSelectStart(e: Event): void;
+
     private removeEventListeners(): void;
 
     private removeListeners(): void;
 
     private removeSelectionListeners(): void;
+
+    private removeSelectStartListeners(): void;
 
     private resizeCheck(): void;
 
@@ -136,4 +142,6 @@ export default class Contents {
     private triggerEvent(e: Event): void;
 
     private triggerSelectedEvent(selection: Selection): void;
+
+    private triggerSelectStartEvent(e: Event): void;
 }

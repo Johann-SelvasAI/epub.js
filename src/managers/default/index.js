@@ -356,11 +356,11 @@ class DefaultViewManager {
 		}
 		if(this.settings.direction === 'rtl'){
 			/***
-				the `floor` function above (L343) is on positive values, so we should add one `layout.delta` 
+				the `floor` function above (L343) is on positive values, so we should add one `layout.delta`
 				to distX or use `Math.ceil` function, or multiply offset.left by -1
 				before `Math.floor`
 			*/
-			distX = distX + this.layout.delta 
+			distX = distX + this.layout.delta
 			distX = distX - width
 		}
 		this.scrollTo(distX, distY, true);
@@ -526,7 +526,7 @@ class DefaultViewManager {
 						this.settings.axis === "horizontal" &&
 						this.settings.direction === "rtl" &&
 						this.settings.rtlScrollType === "default") {
-						
+
 						this.scrollTo(this.container.scrollWidth, 0, true);
 					}
 					this.views.show();
@@ -672,8 +672,8 @@ class DefaultViewManager {
 		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
 		let pageWidth = (container.width < window.innerWidth) ? container.width : window.innerWidth;
 		let vertical = (this.settings.axis === "vertical");
-		let rtl =  (this.settings.direction === "rtl"); 
-			
+		let rtl =  (this.settings.direction === "rtl");
+
 		let offset = 0;
 		let used = 0;
 
@@ -777,7 +777,7 @@ class DefaultViewManager {
 			let startPage = Math.floor(start / this.layout.pageWidth);
 			let pages = [];
 			let endPage = Math.floor(end / this.layout.pageWidth);
-			
+
 			// start page should not be negative
 			if (startPage < 0) {
 				startPage = 0;

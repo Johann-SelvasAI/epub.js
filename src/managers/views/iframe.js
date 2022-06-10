@@ -776,37 +776,34 @@ class IframeView {
 
 		if (cfiRange in this.memos) {
 			let item = this.memos[cfiRange];
+			item.render();
 			return item;
 		}
 
-		let range = this.contents.range(cfiRange);
-
-		if (!range) {
-			return;
-		}
-
-		let container = range.commonAncestorContainer;
-		let parent = (container.nodeType === 1) ? container : container.parentNode;
-		let emitter = (e) => {
-			this.emit(EVENTS.VIEWS.MEMO_CLICKED, cfiRange, data);
-		};
-
-		if (range.collapsed && container.nodeType === 1) {
-			range = new Range();
-			range.selectNodeContents(container);
-		} else if (range.collapsed) { // Webkit doesn't like collapsed ranges
-			range = new Range();
-			range.selectNodeContents(parent);
-		}
-
-		let memo = this.document.createElement("a");
+		const self = this;
+		const icon = "data:image/svg+xml,%3Csvg width='48' height='62' viewBox='0 0 48 62' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M48 24.4242C48 37.9134 24 62 24 62C24 62 0 37.9134 0 24.4242C0 10.9351 10.7452 0 24 0C37.2548 0 48 10.9351 48 24.4242Z' fill='%23FFA061'/%3E%3Ccircle cx='24' cy='24' r='20' fill='white'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16.1148 11.2856C12.5802 11.2856 9.71484 14.151 9.71484 17.6856V27.1714C9.71484 30.706 12.5802 33.5714 16.1148 33.5714H16.3241L19.4291 39.2856L22.5342 33.5714H31.8863C35.4209 33.5714 38.2863 30.706 38.2863 27.1714V17.6856C38.2863 14.151 35.4209 11.2856 31.8863 11.2856H16.1148Z' fill='%23FF8B3E'/%3E%3Crect x='16.5713' y='17.5713' width='14.8571' height='1.71429' rx='0.857143' fill='white'/%3E%3Crect x='16.5713' y='21.5713' width='14.8571' height='1.71429' rx='0.857143' fill='white'/%3E%3Cpath d='M16.5713 26.4284C16.5713 25.955 16.955 25.5713 17.4284 25.5713H21.9999C22.4732 25.5713 22.857 25.955 22.857 26.4284C22.857 26.9018 22.4732 27.2856 21.9999 27.2856H17.4284C16.955 27.2856 16.5713 26.9018 16.5713 26.4284Z' fill='white'/%3E%3C/svg%3E%0A";
+		let memo = document.createElement("div");
+		memo.setAttribute("ref", "icon");
+		memo.classList.add("icon");
+		memo.classList.add("memo");
 		memo.setAttribute("ref", "epubjs-mk");
 		memo.style.position = "absolute";
 		memo.dataset["epubcfi"] = cfiRange;
-        memo.classList.add("memo");
+		memo.style.backgroundImage = `url("${icon}")`;
+		memo.style.backgroundPosition = 'center center';
+		memo.style.backgroundRepeat = 'no-repeat';
+		memo.style.backgroundSize = '100% auto';
+		memo.style.width = '48px';
+		memo.style.height = '62px';
+		let button = document.createElement('button');
+		button.innerText = '메모';
+		button.style.display = 'none';
+		button.style.position = 'absolute';
+		memo.appendChild(button);
+		memo.classList.add("memo");
 
 		if (data) {
-			Object.keys(data).forEach((key) => {
+			Object.keys(data).forEach(key => {
 				memo.dataset[key] = data[key];
 			});
 		}
@@ -816,39 +813,62 @@ class IframeView {
 			memo.addEventListener("touchstart", cb);
 		}
 
+		let emitter = (e) => {
+			this.emit(EVENTS.VIEWS.MEMO_CLICKED, cfiRange, data);
+		};
 		memo.addEventListener("click", emitter);
 		memo.addEventListener("touchstart", emitter);
-		this.placeMemo(memo, range);
+
+		const render = function() {
+			let range = self.contents.range(cfiRange);
+
+			if (!range) {
+				return;
+			}
+
+			let container = range.commonAncestorContainer;
+			let parent = container.nodeType === 1 ? container : container.parentNode;
+
+			if (range.collapsed && container.nodeType === 1) {
+				range = new Range();
+				range.selectNodeContents(container);
+			} else if (range.collapsed) {
+				range = new Range();
+				range.selectNodeContents(parent);
+			}
+			let top, right, left;
+
+			if (self.layout.name === "pre-paginated" || self.settings.axis !== "horizontal") {
+				let pos = range.getBoundingClientRect();
+				top = pos.top;
+			} else {
+				let rects = range.getClientRects();
+				let rect;
+
+				for (let i = 0; i !== rects.length; i++) {
+				rect = rects[i];
+
+				if (!left || rect.left < left) {
+					left = rect.right;
+					top = rect.top;
+				}
+				}
+			}
+
+			memo.style.top = `${top}px`;
+			memo.style.left = `${left}px`;
+		};
+
+		render();
 		this.element.appendChild(memo);
-		this.memos[cfiRange] = { "element": memo, "range": range, "listeners": [emitter, cb] };
+		this.memos[cfiRange] = {
+			"element": memo,
+			"cfiRange": cfiRange,
+			"listeners": [emitter, cb],
+			"render" : render
+		};
 
 		return parent;
-	}
-
-	placeMemo(element, range) {
-		let top, right, left;
-
-		if(this.layout.name === "pre-paginated" ||
-			this.settings.axis !== "horizontal") {
-			let pos = range.getBoundingClientRect();
-			top = pos.top;
-			right = pos.right;
-		} else {
-			let rects = range.getClientRects();
-			let rect;
-
-			for (var i = 0; i != rects.length; i++) {
-                rect = rects[i];
-
-                if (!left || rect.left < left) {
-                    left = rect.right;
-                    top = rect.top;
-                }
-			}
-		}
-
-		element.style.top = `${top}px`;
-		element.style.left = `${left}px`;
 	}
 
 	unhighlight(cfiRange) {

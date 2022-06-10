@@ -381,15 +381,11 @@ class Contents {
 	 */
 	listeners() {
 		this.imageLoadListeners();
-
 		this.mediaQueryListeners();
-
 		// this.fontLoadListeners();
-
 		this.addEventListeners();
-
 		this.addSelectionListeners();
-
+		this.addSelectStartListeners();
 		// this.transitionListeners();
 
 		if (typeof ResizeObserver === "undefined") {
@@ -400,7 +396,6 @@ class Contents {
 		}
 
 		// this.mutationObservers();
-
 		this.linksHandler();
 	}
 
@@ -409,10 +404,9 @@ class Contents {
 	 * @private
 	 */
 	removeListeners() {
-
 		this.removeEventListeners();
-
 		this.removeSelectionListeners();
+		this.removeSelectStartListeners();
 
 		if (this.observer) {
 			this.observer.disconnect();
@@ -918,6 +912,46 @@ class Contents {
 	 */
 	triggerEvent(e){
 		this.emit(e.type, e);
+	}
+
+	/**
+	 * Add listener for text select start
+	 * @private
+	 */
+	addSelectStartListeners(){
+		if(!this.document) {
+			return;
+		}
+		this._onSelectStart = this.onSelectStart.bind(this);
+		this.document.addEventListener("selectstart", this._onSelectStart, { passive: true });
+	}
+
+	/**
+	 * Remove listener for text select start
+	 * @private
+	 */
+	removeSelectStartListeners(){
+		if(!this.document) {
+			return;
+		}
+		this.document.removeEventListener("selectstart", this._onSelectStart, { passive: true });
+		this._onSelectStart = undefined;
+	}
+
+	/**
+	 * Handle getting text on select start
+	 * @private
+	 */
+	onSelectStart(e){
+		this.triggerSelectStartEvent(e);
+	}
+
+	/**
+	 * Emit event on text select start
+	 * @private
+	 */
+	triggerSelectStartEvent(e){
+		this.emit(EVENTS.CONTENTS.SELECT_START, e);
 	}
 
 	/**
