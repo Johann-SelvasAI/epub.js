@@ -110,7 +110,7 @@ class Layout {
 		var width = _width;
 		var height = _height;
 
-		var section = Math.floor(width / 12);
+		var section = Math.floor(width / 36);
 
 		var columnWidth;
 		var spreadWidth;
@@ -199,7 +199,7 @@ class Layout {
 		} else if (axis && axis === "horizontal") {
 			formating = contents.size(null, this.height);
 		} else {
-			formating = contents.size(this.width, null);				
+			formating = contents.size(this.width, null);
 		}
 
 		return formating; // might be a promise in some View Managers
