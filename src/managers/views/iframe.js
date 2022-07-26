@@ -90,8 +90,6 @@ class IframeView {
 		// Back up if seamless isn't supported
 		this.iframe.style.border = "none";
 		this.iframe.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
-        // sandbox
-        this.iframe.sandbox = "allow-same-origin";
 
         if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
 			this.iframe.sandbox += " allow-same-origin allow-scripts allow-popups allow-forms";
