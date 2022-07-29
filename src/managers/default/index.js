@@ -631,7 +631,10 @@ class DefaultViewManager {
 							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 						}
 					}
-					this.views.show();
+
+					setTimeout(() => {
+						this.views.show();
+					}, 100);
 				}.bind(this));
 		}
 	}
