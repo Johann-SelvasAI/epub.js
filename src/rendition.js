@@ -545,6 +545,14 @@ class Rendition {
 			.then(this.reportLocation.bind(this));
 	}
 
+	isStart(){
+		return this.manager.isStart();
+	}
+
+	isEnd(){
+		return this.manager.isEnd();
+	}
+
 	//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
 	/**
 	 * Determine the Layout properties from metadata and settings

@@ -666,6 +666,15 @@ class DefaultViewManager {
 		return this.location;
 	}
 
+	isStart(){
+		return !(this.container.scrollLeft > 0 || this.views.first().section.prev());
+	}
+
+	isEnd(){
+		const left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+		return !(left <= this.container.scrollWidth || this.views.last().section.next());
+	}
+
 	scrolledLocation() {
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
