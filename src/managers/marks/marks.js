@@ -1,16 +1,16 @@
-import svg from './svg';
-import events from './events';
+import svg from "./svg";
+import events from "./events";
 
 export class Pane {
     constructor(target, container = document.body) {
         this.target = target;
-        this.element = svg.createElement('svg');
+        this.element = svg.createElement("svg");
         this.marks = [];
 
         // Match the coordinates of the target element
-        this.element.style.position = 'absolute';
+        this.element.style.position = "absolute";
         // Disable pointer events
-        this.element.setAttribute('pointer-events', 'none');
+        this.element.setAttribute("pointer-events", "none");
 
         // Set up mouse event proxying between the target element and the marks
         events.proxyMouse(this.target, this.marks);
@@ -22,7 +22,7 @@ export class Pane {
     }
 
     addMark(mark) {
-        var g = svg.createElement('g');
+        var g = svg.createElement("g");
         this.element.appendChild(g);
         mark.bind(g, this.container);
 
@@ -49,7 +49,6 @@ export class Pane {
         }
     }
 }
-
 
 export class Mark {
     constructor() {
@@ -88,19 +87,37 @@ export class Mark {
         return rects;
     }
 
+    convertJSON(obj) {
+        var json = {
+            top: obj.top,
+            bottom: obj.bottom,
+            left: obj.left,
+            right: obj.right,
+            height: obj.height,
+            width: obj.width
+        };
+
+        if (obj.x) {
+            json.x = obj.x;
+        }
+
+        if (obj.y) {
+            json.y = obj.y;
+        }
+
+        return json;
+    }
+
     filteredRanges() {
         if (!this.range) {
             return [];
         }
 
-        // De-duplicate the boxes
         const rects = Array.from(this.range.getClientRects());
-        const stringRects = rects.map((r) => JSON.stringify(r));
-        const setRects = new Set(stringRects);
-        return Array.from(setRects).map((sr) => JSON.parse(sr));
+        return rects.map(r => convertJSON(r));
     }
 
-    filteredRangesByTag(tag) {
+    getRanges() {
         const doc = this.getDocument();
 
         if (!this.range || !doc) {
@@ -114,26 +131,27 @@ export class Mark {
 
         for (var i = 0; i < filtered.length; i++) {
             var r = filtered[i];
-            var element = doc.elementFromPoint(r.x, r.y);
-
-            if (element.tagName !== tag.toUpperCase()) {
-                element = element.querySelector(tag);
-            }
+            var element = doc.elementFromPoint(r.left, r.top);
 
             if (element) {
                 var id = parseInt(element.id);
-                var str = element.textContent.trim();
+                var text = element.textContent;
 
-                if (str.length === 0) {
+                if (text.trim().length === 0) {
                     continue;
                 }
 
                 if (id !== prevId) {
+                    var span = doc.createElement("span");
+                    span.innerText = text;
+                    element.innerHTML = "";
+                    element.appendChild(span);
                     obj[id] = {
                         old: [r],
-                        new: Array.from(element.getClientRects())
-                    }
-
+                        new: Array.from(span.getClientRects()).map(r => convertJSON(r))
+                    };
+                    element.innerHTML = text;
+                    prevId = id;
                     prevId = id;
                 } else {
                     obj[id].old.push(r);
@@ -145,7 +163,7 @@ export class Mark {
 
         for (var i = 0; i < keys.length; i++) {
             var key = parseInt(keys[i]);
-            rects = rects.concat((i === 0 || i === keys.length - 1) ? obj[key].old : obj[key].new);
+            rects = rects.concat(i === 0 || i === keys.length - 1 ? obj[key].old : obj[key].new);
         }
 
         const stringRects = rects.map(r => JSON.stringify(r));
@@ -154,7 +172,7 @@ export class Mark {
     }
 
     getDocument() {
-        var iframe = this.container.querySelector('iframe');
+        var iframe = this.container.querySelector("iframe");
 
         if (iframe) {
             return iframe.contentDocument;
@@ -177,19 +195,19 @@ export class Highlight extends Mark {
         super.bind(element, container);
 
         for (var attr in this.data) {
-          if (this.data.hasOwnProperty(attr)) {
-            this.element.dataset[attr] = this.data[attr];
-          }
+            if (this.data.hasOwnProperty(attr)) {
+                this.element.dataset[attr] = this.data[attr];
+            }
         }
 
         for (var attr in this.attributes) {
-          if (this.attributes.hasOwnProperty(attr)) {
-            this.element.setAttribute(attr, this.attributes[attr]);
-          }
+            if (this.attributes.hasOwnProperty(attr)) {
+                this.element.setAttribute(attr, this.attributes[attr]);
+            }
         }
 
         if (this.className) {
-          this.element.classList.add(this.className);
+            this.element.classList.add(this.className);
         }
     }
 
@@ -200,28 +218,27 @@ export class Highlight extends Mark {
         }
 
         var docFrag = this.element.ownerDocument.createDocumentFragment();
-        var filtered = (this.data && this.data.target) ? this.filteredRangesByTag(this.data.target) : this.filteredRanges();
+        var ranges = this.getRanges();
         var offset = this.element.getBoundingClientRect();
         var container = this.container.getBoundingClientRect();
 
-        for (var i = 0, len = filtered.length; i < len; i++) {
-            var r = filtered[i];
-            var el = svg.createElement('rect');
-            el.setAttribute('x', r.left - offset.left + container.left);
-            el.setAttribute('y', r.top - offset.top + container.top);
-            el.setAttribute('height', r.height);
-            el.setAttribute('width', r.width);
+        for (var i = 0, len = ranges.length; i < len; i++) {
+            var r = ranges[i];
+            var el = svg.createElement("rect");
+            el.setAttribute("x", r.left - offset.left + container.left);
+            el.setAttribute("y", r.top - offset.top + container.top);
+            el.setAttribute("height", r.height);
+            el.setAttribute("width", r.width);
             docFrag.appendChild(el);
         }
 
         this.element.appendChild(docFrag);
-
     }
 }
 
 export class Underline extends Highlight {
     constructor(range, className, data, attributes) {
-        super(range, className, data,  attributes);
+        super(range, className, data, attributes);
     }
 
     render() {
@@ -238,23 +255,22 @@ export class Underline extends Highlight {
         for (var i = 0, len = filtered.length; i < len; i++) {
             var r = filtered[i];
 
-            var rect = svg.createElement('rect');
-            rect.setAttribute('x', r.left - offset.left + container.left);
-            rect.setAttribute('y', r.top - offset.top + container.top);
-            rect.setAttribute('height', r.height);
-            rect.setAttribute('width', r.width);
-            rect.setAttribute('fill', 'none');
+            var rect = svg.createElement("rect");
+            rect.setAttribute("x", r.left - offset.left + container.left);
+            rect.setAttribute("y", r.top - offset.top + container.top);
+            rect.setAttribute("height", r.height);
+            rect.setAttribute("width", r.width);
+            rect.setAttribute("fill", "none");
 
+            var line = svg.createElement("line");
+            line.setAttribute("x1", r.left - offset.left + container.left);
+            line.setAttribute("x2", r.left - offset.left + container.left + r.width);
+            line.setAttribute("y1", r.top - offset.top + container.top + r.height - 1);
+            line.setAttribute("y2", r.top - offset.top + container.top + r.height - 1);
 
-            var line = svg.createElement('line');
-            line.setAttribute('x1', r.left - offset.left + container.left);
-            line.setAttribute('x2', r.left - offset.left + container.left + r.width);
-            line.setAttribute('y1', r.top - offset.top + container.top + r.height - 1);
-            line.setAttribute('y2', r.top - offset.top + container.top + r.height - 1);
-
-            line.setAttribute('stroke-width', 1);
-            line.setAttribute('stroke', 'black'); //TODO: match text color?
-            line.setAttribute('stroke-linecap', 'square');
+            line.setAttribute("stroke-width", 1);
+            line.setAttribute("stroke", "black"); //TODO: match text color?
+            line.setAttribute("stroke-linecap", "square");
 
             docFrag.appendChild(rect);
 
@@ -262,10 +278,8 @@ export class Underline extends Highlight {
         }
 
         this.element.appendChild(docFrag);
-
     }
 }
-
 
 function coords(el, container) {
     var offset = container.getBoundingClientRect();
@@ -279,19 +293,15 @@ function coords(el, container) {
     };
 }
 
-
 function setCoords(el, coords) {
-    el.style.setProperty('top', `${coords.top}px`, 'important');
-    el.style.setProperty('left', `${coords.left}px`, 'important');
-    el.style.setProperty('height', `${coords.height}px`, 'important');
-    el.style.setProperty('width', `${coords.width}px`, 'important');
+    el.style.setProperty("top", `${coords.top}px`, "important");
+    el.style.setProperty("left", `${coords.left}px`, "important");
+    el.style.setProperty("height", `${coords.height}px`, "important");
+    el.style.setProperty("width", `${coords.width}px`, "important");
 }
 
 function contains(rect1, rect2) {
-  return (
-    (rect2.right <= rect1.right) &&
-    (rect2.left >= rect1.left) &&
-    (rect2.top >= rect1.top) &&
-    (rect2.bottom <= rect1.bottom)
-  );
+    return (
+        rect2.right <= rect1.right && rect2.left >= rect1.left && rect2.top >= rect1.top && rect2.bottom <= rect1.bottom
+    );
 }
