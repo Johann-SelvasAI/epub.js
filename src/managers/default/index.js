@@ -300,6 +300,7 @@ class DefaultViewManager {
 
 				// Move to correct place within the section, if needed
 				if(target) {
+					this.updateLayout();
 					let offset = view.locationOf(target);
 					let width = view.width();
 					this.moveTo(offset, width);
