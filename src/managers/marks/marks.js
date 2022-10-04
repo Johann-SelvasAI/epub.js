@@ -1,5 +1,7 @@
 import svg from "./svg";
 import events from "./events";
+import EpubCFI from "../../epubcfi";
+
 
 export class Pane {
     constructor(target, container = document.body) {
@@ -109,18 +111,25 @@ export class Mark {
     }
 
     filteredRanges() {
-        if (!this.range) {
+        const range = this.range();
+
+        if (!range) {
             return [];
         }
 
-        const rects = Array.from(this.range.getClientRects());
+        const rects = Array.from(range.getClientRects());
         return rects.map(r => convertJSON(r));
     }
+
+	range(ignoreClass){
+		var cfi = new EpubCFI(this.data['epubcfi']);
+		return cfi.toRange(this.getDocument(), ignoreClass);
+	}
 
     getRanges() {
         const doc = this.getDocument();
 
-        if (!this.range || !doc) {
+        if (!doc) {
             return [];
         }
 
@@ -129,12 +138,16 @@ export class Mark {
         var rects = [];
         const filtered = this.filteredRanges();
 
+        if (!filtered || filtered.length === 0) {
+            return [];
+        }
+
         for (var i = 0; i < filtered.length; i++) {
             var r = filtered[i];
             var element = doc.elementFromPoint(r.left, r.top);
 
             if (element) {
-                var id = parseInt(element.id);
+                var id = parseInt(element.getAttribute('data-index'));
                 var text = element.textContent;
 
                 if (text.trim().length === 0) {
@@ -183,9 +196,8 @@ export class Mark {
 }
 
 export class Highlight extends Mark {
-    constructor(range, className, data, attributes) {
+    constructor(className, data, attributes) {
         super();
-        this.range = range;
         this.className = className;
         this.data = data || {};
         this.attributes = attributes || {};
@@ -237,8 +249,8 @@ export class Highlight extends Mark {
 }
 
 export class Underline extends Highlight {
-    constructor(range, className, data, attributes) {
-        super(range, className, data, attributes);
+    constructor(className, data, attributes) {
+        super(className, data, attributes);
     }
 
     render() {

@@ -375,13 +375,8 @@ class IframeView {
 		this.pane && this.pane.render();
 
 		requestAnimationFrame(() => {
-			let mark;
-			for (let m in this.marks) {
-				if (this.marks.hasOwnProperty(m)) {
-					mark = this.marks[m];
-					this.placeMark(mark.element, mark.range);
-				}
-			}
+			this.rearrangeMark();
+			this.rearrangeMemo();
 		});
 
 		this.onResize(this, size);
@@ -394,6 +389,29 @@ class IframeView {
 
 	}
 
+	rearrangeMemo() {
+		let memo;
+		for (let m in this.memos) {
+			if (this.memos.hasOwnProperty(m)) {
+				memo = this.memos[m];
+				memo.render();
+			}
+		}
+	}
+
+	rearrangeMark() {
+		let mark;
+		for (let m in this.marks) {
+			if (this.marks.hasOwnProperty(m)) {
+				let range = this.contents.range(m);
+
+				if (range) {
+					mark = this.marks[m];
+					this.placeMark(mark.element, m);
+				}
+			}
+		}
+	}
 
 	load(contents) {
 		var loading = new defer();
@@ -623,7 +641,6 @@ class IframeView {
 		}
 
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
@@ -634,7 +651,7 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Highlight(range, className, data, attributes);
+		let m = new Highlight(className, data, attributes);
 		let h = this.pane.addMark(m);
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 		h.element.setAttribute("ref", className);
@@ -653,8 +670,8 @@ class IframeView {
 		if (!this.contents) {
 			return;
 		}
+
 		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
@@ -665,7 +682,7 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Underline(range, className, data, attributes);
+		let m = new Underline(className, data, attributes);
 		let h = this.pane.addMark(m);
 
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
@@ -695,6 +712,7 @@ class IframeView {
 		if (!range) {
 			return;
 		}
+
 		let container = range.commonAncestorContainer;
 		let parent = (container.nodeType === 1) ? container : container.parentNode;
 
@@ -734,13 +752,17 @@ class IframeView {
 
 		this.element.appendChild(mark);
 
-		this.marks[cfiRange] = { "element": mark, "range": range, "listeners": [emitter, cb] };
+		this.marks[cfiRange] = { "element": mark, "listeners": [emitter, cb] };
 
 		return parent;
 	}
 
 	placeMark(element, range) {
 		let top, right, left;
+
+		if (range) {
+			return;
+		}
 
 		if(this.layout.name === "pre-paginated" ||
 			this.settings.axis !== "horizontal") {
@@ -817,56 +839,61 @@ class IframeView {
 		memo.addEventListener("click", emitter);
 		memo.addEventListener("touchstart", emitter);
 
-		const render = function() {
-			let range = self.contents.range(cfiRange);
+		const render = function () {
+            let range = self.contents.range(cfiRange);
+            let top, right, left;
 
-			if (!range) {
-				return;
-			}
+            if (!range) {
+                return false;
+            }
 
-			let container = range.commonAncestorContainer;
-			let parent = container.nodeType === 1 ? container : container.parentNode;
+            let container = range.commonAncestorContainer;
+            let parent = container.nodeType === 1 ? container : container.parentNode;
 
-			if (range.collapsed && container.nodeType === 1) {
-				range = new Range();
-				range.selectNodeContents(container);
-			} else if (range.collapsed) {
-				range = new Range();
-				range.selectNodeContents(parent);
-			}
-			let top, right, left;
+            if (range.collapsed && container.nodeType === 1) {
+                range = new Range();
+                range.selectNodeContents(container);
+            } else if (range.collapsed) {
+                range = new Range();
+                range.selectNodeContents(parent);
+            }
 
-			if (self.layout.name === "pre-paginated" || self.settings.axis !== "horizontal") {
-				let pos = range.getBoundingClientRect();
-				top = pos.top;
-			} else {
-				let rects = range.getClientRects();
-				let rect;
+            if (self.layout.name === "pre-paginated" || self.settings.axis !== "horizontal") {
+                let pos = range.getBoundingClientRect();
+                top = pos.top;
+            } else {
+                let rects = range.getClientRects();
+                let rect;
 
-				for (let i = 0; i !== rects.length; i++) {
-				rect = rects[i];
+                for (let i = 0; i !== rects.length; i++) {
+                    rect = rects[i];
 
-				if (!left || rect.left < left) {
-					left = rect.right;
-					top = rect.top;
-				}
-				}
-			}
+                    if (!left || rect.left < left) {
+                        left = rect.right;
+                        top = rect.top;
+                    }
+                }
+            }
 
-			memo.style.top = `${top}px`;
-			memo.style.left = `${left}px`;
-		};
+            memo.style.top = `${top}px`;
+            memo.style.left = `${left}px`;
 
-		render();
-		this.element.appendChild(memo);
-		this.memos[cfiRange] = {
-			"element": memo,
-			"cfiRange": cfiRange,
-			"listeners": [emitter, cb],
-			"render" : render
-		};
+            return true;
+        };
 
-		return parent;
+		if (render()) {
+			this.element.appendChild(memo);
+			this.memos[cfiRange] = {
+				"element": memo,
+				"cfiRange": cfiRange,
+				"listeners": [emitter, cb],
+				"render" : render
+			};
+
+			return parent;
+		}
+
+		return;
 	}
 
 	unhighlight(cfiRange) {
